@@ -99,6 +99,8 @@
   			  } else {
   			    $("#message").text("Dealer wins with "+computer.handValue());
 			    }
+  			} else if (computer.handValue()==player.handValue()) {
+  			  $("#message").text("Push");
   			} else {
   				$("#message").text("Player wins with "+player.handValue());
   			}
