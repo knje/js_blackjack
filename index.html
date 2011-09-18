@@ -81,7 +81,7 @@
 		
 		// Game logic
 		function computerPlayATurn() {
-			if (computer.handValue() <= player.handValue() && computer.handValue() < 21) {
+			if (computer.handValue() <= player.handValue() && player.handValue() <= 21) {
 				computer.dealCard(deck.pop());
 				drawDealer(context, computer, card_images, true);
 				if (computer.handValue()<=21) {
