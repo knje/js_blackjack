@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>JS Blackjack</title>
+	<meta name="author" content="Kannan Jeyakumar">
+	
+	<link type="text/css" href="css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />	
+	<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+	<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+	<script type="text/javascript" src="cardgame.js"></script>
+	<script type="text/javascript">
+
+		var deck        = new cardgame.CardDeck();
+		var player      = new cardgame.Player();
+		var computer    = new cardgame.Player();
+
+		var card_images = null;
+		var context     = null;
+		var timeout_id  = null; // timout for computer turn
+		var COMPUTER_DELAY = 800;
+		
+		// Button state helper		
+		function setPlayerGameplayUIEnabled(state) {
+		  if (state==true) {
+  		  $("#hitMeButton").button("enable");
+  		  $("#standButton").button("enable");
+		  } else {
+  		  $("#hitMeButton").button("disable");
+  		  $("#standButton").button("disable");
+		  }
+		}
+		
+		// Drawing
+		function clearBoard(context) {
+			context.clearRect(0, 0, 860, 480);
+		}
+		
+		function drawCard(context, img, card, x, y) {
+			card_width  = 167;
+			card_height = 242.4;
+			card_x      = card_width*(card.number-1);
+			card_y      = card_height*cardgame.SuiteNumber[card.suite];
+			width       = 66.8;
+			height      = 96.96;
+			context.drawImage(img, card_x, card_y, card_width, card_height, x, y, width, height); 
+		}
+		
+		function drawCardBack(context, img, x, y) {
+			card_width  = 167;
+			card_height = 242.4;
+			card_x      = card_width*2;
+			card_y      = card_height*4;
+			width       = 66.8;
+			height      = 96.96;
+			context.drawImage(img, card_x, card_y, card_width, card_height, x, y, width, height); 
+		}
+		
+		function drawDealer(context, player, img, turn) {
+			var begin_x     = 20;
+			var begin_y     = 50;
+			var increment_x = 75;
+			for (var i=0; i<player.cards.length; i++) {
+				if(!turn && i==1) {
+					drawCardBack(context, img, begin_x+increment_x*i, begin_y);
+				} else {
+					drawCard(context, img, player.cards[i], begin_x+increment_x*i, begin_y);
+				}
+			}
+		}
+		
+		function drawPlayer(context, player, img) {
+			var begin_x     = 20;
+			var begin_y     = 200;
+			var increment_x = 75;
+			for (var i=0; i<player.cards.length; i++) {
+				drawCard(context, img, player.cards[i], begin_x+increment_x*i, begin_y);
+			}
+		}
+		
+		// Game logic
+		function computerPlayATurn() {
+			if (computer.handValue() <= player.handValue() && player.handValue() <= 21) {
+				computer.dealCard(deck.pop());
+				drawDealer(context, computer, card_images, true);
+				timeout_id = setTimeout( computerPlayATurn, COMPUTER_DELAY );
+			} else {
+  			if (computer.handValue()<=21) {
+  				$("#message").text("Dealer wins with "+computer.handValue());
+  			} else {
+  				$("#message").text("Player wins with "+player.handValue());
+  			}
+			}
+		}
+		function beginComputerTurn() {
+			drawDealer(context, computer, card_images, true);
+			timeout_id = setTimeout( computerPlayATurn, COMPUTER_DELAY );
+		}
+		
+		function beginGame(deck, context, img) {
+		  
+		  // set some initial ui
+		  if(timeout_id) {
+		    clearTimeout(timeout_id);
+		  }
+			$("#hitMeButton").show();
+			$("#standButton").show();
+			
+			// start the game
+			deck.shuffle();
+			player.dealCard(deck.pop());
+			player.dealCard(deck.pop());
+			
+			clearBoard(context);
+			
+			drawPlayer(context, player, img);
+			
+			computer.dealCard(deck.pop());
+			computer.dealCard(deck.pop());
+			drawDealer(context, computer, img);
+			
+			if(player.handValue()==21) {
+				setPlayerGameplayUIEnabled(false);
+				$("#message").text("Player wins with BlackJack");
+			} else {
+				$("#message").text("Your hand value is "+player.handValue());
+			}
+		}
+		
+		// Events
+		function hitMeButtonClicked() {
+			player.dealCard(deck.pop());
+			drawPlayer(context, player, card_images);
+			$("#message").text("Your hand value is "+player.handValue());
+			if (player.handValue()>21) {
+			  setPlayerGameplayUIEnabled(false);
+				beginComputerTurn();
+			}
+		}
+		
+		function standButtonClicked() {
+			setPlayerGameplayUIEnabled(false);
+			beginComputerTurn();
+		}
+		
+		function newGameButtonClicked() {
+		  setPlayerGameplayUIEnabled(true);
+			deck.returnCards(player.returnCards());
+			deck.returnCards(computer.returnCards());
+			beginGame(deck, context, card_images);
+		}
+		
+		$(document).ready( function(){
+			$("#newGameButton").button();
+			$("#hitMeButton").button();
+			$("#standButton").button();
+			$("#hitMeButton").hide();
+			$("#standButton").hide();
+
+			var canvas = document.getElementById('gameCanvas');
+			context    = canvas.getContext('2d');
+
+			
+			var img = new Image();
+			img.onload = function () {
+				card_images = img;
+				
+				$("#newGameButton").click(newGameButtonClicked);
+				$("#hitMeButton").click(hitMeButtonClicked);
+				$("#standButton").click(standButtonClicked);
+			}
+			img.src = "cards.png";
+			
+		});
+	</script>	
+</head>
+<body>
+<div align="center">
+<canvas id="gameCanvas" width="860" height="480"></canvas>
+</div>
+<div align="center">
+  <button id="hitMeButton">Hit Me</button>
+  <button id="standButton">Stand</button><br />
+  <button id="newGameButton">New Game</button>
+</div>
+<div id="message" align="center">
+</div>
+</body>
+</html>
