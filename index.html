@@ -81,13 +81,24 @@
 		
 		// Game logic
 		function computerPlayATurn() {
-			if (computer.handValue() <= player.handValue() && player.handValue() <= 21) {
+			if (computer.handValue() <= player.handValue() && computer.handValue() < 21) {
 				computer.dealCard(deck.pop());
 				drawDealer(context, computer, card_images, true);
+				if (computer.handValue()<=21) {
+				  $("#message").text("Dealer has "+computer.handValue());
+			  } else {
+			    $("#message").text("Dealer bust");
+			  }
 				timeout_id = setTimeout( computerPlayATurn, COMPUTER_DELAY );
 			} else {
-  			if (computer.handValue()<=21) {
-  				$("#message").text("Dealer wins with "+computer.handValue());
+			  if (computer.handValue()==21 && computer.cards.length==2) {
+			    $("#message").text("Dealer wins with blackjack");
+			  } else if (computer.handValue()<=21) {
+  			  if (computer.handValue()==player.handValue()) {
+  			    $("#message").text("Push");
+  			  } else {
+  			    $("#message").text("Dealer wins with "+computer.handValue());
+			    }
   			} else {
   				$("#message").text("Player wins with "+player.handValue());
   			}
@@ -186,5 +197,8 @@
 </div>
 <div id="message" align="center">
 </div>
+<p align="center">
+  Get the code <a href="https://github.com/kannanjeyakumar/js_blackjack">https://github.com/kannanjeyakumar/js_blackjack</a>
+</p>
 </body>
 </html>
