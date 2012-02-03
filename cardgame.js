@@ -108,14 +108,14 @@ this.Player.prototype.dealCard = function(card) {
 }
 
 this.Player.prototype.returnCards = function() {
-	tmpCards = this.cards;
+	var tmpCards = this.cards;
 	this.cards = [];
 	return tmpCards;
 }
 
 this.Player.prototype.handValue = function() {
-	hand_val = 0;
-	aces     = 0;
+	var hand_val = 0;
+	var aces     = 0;
 	for (var i=0; i<this.cards.length; i++){
 		if(this.cards[i].number==1) {
 			aces += 1
